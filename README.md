@@ -18,6 +18,17 @@ This fork installs beside the factory Aurora Store as **AX12 Aurora Store**, so 
 
 The build was tested on a RadioMaster AX12 running Android 9 with a clean installation of FPV.SkyDive, including its 349 MB OBB file.
 
+## Tested firmware
+
+Verified on a physical RadioMaster AX12 with:
+
+- Android 9 (API 28)
+- Build display ID: `radiomaster-AX12`
+- Firmware build: `eng..20260629.135400` (June 29, 2026)
+- Build fingerprint base: `Radiomaster/full_tb8788p1_64_bsp/tb8788p1_64_bsp:9/PPR1.180610.011/06291403`
+
+Other Android 9 firmware builds may work, but this is the version used for the complete clean-install and OBB download test.
+
 ## What changed
 
 - App name changed to **AX12 Aurora Store**.
