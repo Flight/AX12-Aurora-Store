@@ -16,6 +16,9 @@ This fork installs beside the factory Aurora Store as **AX12 Aurora Store**, so 
 4. Choose **Google**, select the Google account already configured in microG, and approve the microG prompt.
 5. Install games normally. Confirm Android's final package installation prompt when it appears.
 
+Use the regular **Install** button first. **Manual download** is only needed when you intentionally
+want a specific older version code or the normal Play listing does not offer the required build.
+
 The build was tested on a RadioMaster AX12 running Android 9 with a clean installation of FPV.SkyDive, including its 349 MB OBB file.
 
 ## Tested firmware
@@ -28,6 +31,15 @@ Verified on a physical RadioMaster AX12 with:
 - Build fingerprint base: `Radiomaster/full_tb8788p1_64_bsp/tb8788p1_64_bsp:9/PPR1.180610.011/06291403`
 
 Other Android 9 firmware builds may work, but this is the version used for the complete clean-install and OBB download test.
+
+## Tested games
+
+| Game | Result | Installation path |
+| --- | --- | --- |
+| FPV.SkyDive 1.4.4 (13) | Installed and launched | Regular **Install** button; base APK plus 349 MB OBB downloaded and verified by AX12 Aurora Store |
+| FPV Freerider Recharged | Runs on AX12 | Previously installed with the host-assisted OBB workaround; not yet counted as an end-to-end AX12 Aurora Store test |
+
+This table deliberately distinguishes a complete store installation test from games that merely run on the device.
 
 ## What changed
 
