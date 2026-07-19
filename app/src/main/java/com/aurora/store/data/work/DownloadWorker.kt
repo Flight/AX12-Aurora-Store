@@ -295,6 +295,15 @@ class DownloadWorker @AssistedInject constructor(
                 val tmpFileSuffix = ".tmp"
                 val tmpFile = File(file.absolutePath + tmpFileSuffix)
 
+                // Some Android 9 vendor ROMs remove an empty OBB package directory between
+                // the purchase and download phases. Re-create and validate it immediately
+                // before opening the file, so OBB downloads do not fail silently after the
+                // base APK has completed.
+                val parent = requireNotNull(tmpFile.parentFile)
+                if ((!parent.exists() && !parent.mkdirs()) || !parent.isDirectory) {
+                    throw DownloadFailedException()
+                }
+
                 // Download as a temporary file to avoid installing corrupted files
                 val isNewFile = tmpFile.createNewFile()
 

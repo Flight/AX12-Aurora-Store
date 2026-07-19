@@ -1,4 +1,47 @@
-# Aurora Store
+# AX12 Aurora Store
+
+[![Release](https://img.shields.io/github/v/release/Flight/AX12-Aurora-Store?label=download)](https://github.com/Flight/AX12-Aurora-Store/releases/latest)
+[![Android 9](https://img.shields.io/badge/Android-9%2B-3DDC84?logo=android)](https://github.com/Flight/AX12-Aurora-Store/releases/latest)
+[![License: GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](LICENSE)
+
+An unofficial Aurora Store build adapted for the RadioMaster AX12 and similar Android 9 devices. It fixes a failure where games containing legacy OBB expansion files download their base APK, then stop and return to the store page. The affected OBB directory is recreated and validated immediately before the file is written.
+
+This fork installs beside the factory Aurora Store as **AX12 Aurora Store**, so the original system application and its data remain untouched.
+
+## Download and install
+
+1. Download **AX12-Aurora-Store-4.8.3-ax12.1.apk** from the [latest release](https://github.com/Flight/AX12-Aurora-Store/releases/latest).
+2. Open the APK on the AX12 and allow installation from that source when Android asks.
+3. Grant storage access during first-run setup. Android 9 needs it to write large games' OBB expansion files.
+4. Choose **Google**, select the Google account already configured in microG, and approve the microG prompt.
+5. Install games normally. Confirm Android's final package installation prompt when it appears.
+
+The build was tested on a RadioMaster AX12 running Android 9 with a clean installation of FPV.SkyDive, including its 349 MB OBB file.
+
+## What changed
+
+- App name changed to **AX12 Aurora Store**.
+- Package ID is `com.aurora.store.debug`, allowing side-by-side installation with the factory `com.aurora.store` package.
+- OBB parent directories are recreated and checked immediately before opening the temporary download file.
+- The regular Aurora icon is used instead of the debug-badged icon.
+
+## Security and provenance
+
+Downloads still come directly from Google Play through Aurora Store. This fork does not bypass purchases or licensing. Sign in with the account that owns paid apps.
+
+This is an unofficial community fork. It is not affiliated with or endorsed by Aurora OSS, RadioMaster, Google, or the developers of apps downloaded through it. Source code is based on Aurora Store 4.8.3 and remains licensed under GPL-3.0.
+
+## Build
+
+Requirements: JDK 21 and the Android SDK. Build the same APK with:
+
+```sh
+./gradlew :app:assembleVanillaDebug
+```
+
+Output: `app/build/outputs/apk/vanilla/debug/app-vanilla-debug.apk`.
+
+## Upstream Aurora Store documentation
 
 Aurora Store enables you to search and download apps from the official Google Play store. You can check app descriptions, screenshots, updates, reviews, and download the APK directly from Google Play to your device. 
 
