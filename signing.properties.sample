@@ -1,0 +1,7 @@
+# Copy to signing.properties and fill in to produce a signed release build.
+# Both this file and the keystore it points at are gitignored.
+# Without it, release builds are left unsigned rather than failing.
+KEY_ALIAS=ax12-aurora
+KEY_PASSWORD=
+STORE_FILE=app/ax12-aurora-release.jks
+STORE_PASSWORD=

@@ -43,13 +43,17 @@ gradle-app.setting
 app/release/*
 app/nightly/*
 app/vanilla/*
-app/huawei/*
-app/preload/*
 
 
 #Exclude signing configurations & keystore
 signing.properties
 *.keystore
+*.jks
+# The AOSP test key is public by design and drives debug builds.
+!app/testkey.jks
 
 
 .kotlin/*
+
+# Editor-local settings
+.vscode/

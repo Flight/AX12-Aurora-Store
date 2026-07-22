@@ -6,11 +6,17 @@
 
 An unofficial Aurora Store build adapted for the RadioMaster AX12 and similar Android 9 devices. It fixes a failure where games containing legacy OBB expansion files download their base APK, then stop and return to the store page. The affected OBB directory is recreated and validated immediately before the file is written.
 
-This fork installs beside the factory Aurora Store as **AX12 Aurora Store**, so the original system application and its data remain untouched.
+This fork installs beside the factory Aurora Store as **AX12 Aurora Store** under the package id
+`com.aurora.store.ax12`, so the original system application and its data remain untouched.
+
+> **Upgrading from 4.8.3-ax12.1?** Uninstall it first. That build was published under
+> `com.aurora.store.debug` and signed with the public AOSP test key, so Android cannot update it in
+> place. Releases from 4.8.3-ax12.2 onward are signed with the project key fingerprinted
+> [below](#certificate-fingerprints).
 
 ## Download and install
 
-1. Download **AX12-Aurora-Store-4.8.3-ax12.1.apk** from the [latest release](https://github.com/Flight/AX12-Aurora-Store/releases/latest).
+1. Download the `.apk` from the [latest release](https://github.com/Flight/AX12-Aurora-Store/releases/latest).
 2. Open the APK on the AX12 and allow installation from that source when Android asks.
 3. Grant storage access during first-run setup. Android 9 needs it to write large games' OBB expansion files.
 4. Choose **Google**, select the Google account already configured in microG, and approve the microG prompt.
@@ -109,20 +115,42 @@ Aurora Store works exactly like a door or a browser, allowing you to log in to y
 
 ## Downloads
 
-Please only download the latest stable releases from one of these sources:
+This fork is published only from [GitHub Releases](https://github.com/Flight/AX12-Aurora-Store/releases/latest).
+Every release ships a `SHA256SUMS.txt` alongside the APK.
 
-- [Official website](https://auroraoss.com/)
-- [GitLab Releases](https://gitlab.com/AuroraOSS/AuroraStore/-/releases)
-- [IzzyOnDroid](https://apt.izzysoft.de/fdroid/index/apk/com.aurora.store) (reproducible)
-- [F-Droid](https://f-droid.org/packages/com.aurora.store/) (signed by F-Droid, [more details](https://f-droid.org/docs/Signing_Process/))
-- [App Gallery](https://appgallery.huawei.com/app/C110907863) (limited to certain countries)
-
-You can also get latest debug builds signed with AOSP test keys for testing latest changes from our [GitLab Package Registry](https://gitlab.com/AuroraOSS/AuroraStore/-/packages/24103616).
+Upstream Aurora Store, which this fork tracks, is distributed separately from the
+[official website](https://auroraoss.com/), [GitLab](https://gitlab.com/AuroraOSS/AuroraStore/-/releases),
+[IzzyOnDroid](https://apt.izzysoft.de/fdroid/index/apk/com.aurora.store) and
+[F-Droid](https://f-droid.org/packages/com.aurora.store/). Those builds do not carry the AX12 OBB fix.
 
 ## Certificate Fingerprints
 
-- SHA1: 94:42:75:D7:59:8B:C0:3E:48:85:06:06:42:25:A7:19:90:A2:22:02
-- SHA256: 4C:62:61:57:AD:02:BD:A3:40:1A:72:63:55:5F:68:A7:96:63:FC:3E:13:A4:D4:36:9A:12:57:09:41:AA:28:0F
+Release APKs are signed with this project's own key. Verify before installing with
+`apksigner verify --print-certs <apk>`; anything else is not a build from this repository.
+
+- SHA1: 9B:38:6A:FC:D4:B8:24:52:05:26:3F:74:3B:9F:3E:CC:E0:36:23:93
+- SHA256: 9D:FE:54:24:E9:9A:6B:6F:3E:0E:65:E3:49:55:56:76:FB:BD:52:F7:6F:D8:42:D6:26:50:1A:11:40:CC:50:3E
+
+Upstream Aurora Store builds are signed by Aurora OSS with a different key and are not
+interchangeable with these.
+
+## Building
+
+Requires JDK 21 and the Android SDK. Point Gradle at the SDK with a `local.properties` file
+containing `sdk.dir=/path/to/Android/sdk`, then:
+
+```
+./gradlew assembleVanillaDebug     # AOSP test key, installs as com.aurora.store.debug
+./gradlew assembleVanillaRelease   # project key if signing.properties exists, otherwise unsigned
+```
+
+Gradle must *run* on JDK 21, not merely target it — the Hilt annotation-processing task ignores the
+configured toolchain and compiles with whichever JVM Gradle itself is using.
+
+To produce a signed release locally, copy `signing.properties.sample` to `signing.properties` and
+fill it in. Both that file and the keystore it points at are gitignored. Tagged pushes (`v*`) build
+and publish a signed release through [.github/workflows/release.yml](.github/workflows/release.yml),
+which reads the same material from repository secrets.
 
 ## Support
 
@@ -149,13 +177,6 @@ Please visit [Aurora Wiki](https://gitlab.com/AuroraOSS/AuroraStore/-/wikis/home
 - `android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION` to silently update apps
 - `android.permission.POST_NOTIFICATIONS` to notify user about ongoing downloads, available updates, and errors (optional)
 - `android.permission.USE_CREDENTIALS` to allow users to sign into their personal Google account via microG
-
-## Screenshots
-
-<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/screenshot-01.png" height="400">
-<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/screenshot-03.png" height="400">
-<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/screenshot-07.png" height="400">
-<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/screenshot-08.png" height="400">
 
 ## Translations
 

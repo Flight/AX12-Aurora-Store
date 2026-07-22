@@ -24,6 +24,13 @@ val lastCommitHash = providers.exec {
     commandLine("git", "rev-parse", "--short", "HEAD")
 }.standardOutput.asText.map { it.trim() }
 
+// Release signing material, kept out of version control. Resolved against the root
+// project rather than the JVM working directory, which the Gradle daemon does not own.
+// Absent on contributor checkouts, in which case release builds stay unsigned.
+val signingProperties: Properties? = rootProject.file("signing.properties")
+    .takeIf { it.exists() }
+    ?.let { file -> Properties().apply { file.inputStream().use { load(it) } } }
+
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
@@ -75,16 +82,17 @@ configure<ApplicationExtension> {
     }
 
     signingConfigs {
-        if (File("signing.properties").exists()) {
+        if (signingProperties != null) {
             create("release") {
-                val properties = Properties().apply {
-                    File("signing.properties").inputStream().use { load(it) }
-                }
+                keyAlias = signingProperties.getProperty("KEY_ALIAS")
+                keyPassword = signingProperties.getProperty("KEY_PASSWORD")
+                storeFile = rootProject.file(signingProperties.getProperty("STORE_FILE"))
+                storePassword = signingProperties.getProperty("STORE_PASSWORD")
 
-                keyAlias = properties["KEY_ALIAS"] as String
-                keyPassword = properties["KEY_PASSWORD"] as String
-                storeFile = file(properties["STORE_FILE"] as String)
-                storePassword = properties["KEY_PASSWORD"] as String
+                // v1 keeps the AX12 (API 28) installable; v2/v3 cover newer devices.
+                enableV1Signing = true
+                enableV2Signing = true
+                enableV3Signing = true
             }
         }
         create("aosp") {
@@ -99,13 +107,18 @@ configure<ApplicationExtension> {
 
     buildTypes {
         release {
+            // The AX12 ships Aurora Store as a system app under com.aurora.store. This fork
+            // installs beside it rather than trying to update a package signed by the vendor.
+            applicationIdSuffix = ".ax12"
+            versionNameSuffix = "-ax12"
+
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            if (File("signing.properties").exists()) {
+            if (signingProperties != null) {
                 signingConfig = signingConfigs.getByName("release")
             }
         }
@@ -129,17 +142,6 @@ configure<ApplicationExtension> {
             isDefault = true
             dimension = "device"
         }
-
-        create("huawei") {
-            dimension = "device"
-            versionNameSuffix = "-hw"
-        }
-
-        // This flavor is only for preloaded devices / users who push the app to system
-        create("preload") {
-            dimension = "device"
-            versionNameSuffix = "-preload"
-        }
     }
 
     buildFeatures {
@@ -160,15 +162,6 @@ configure<ApplicationExtension> {
     dependenciesInfo {
         includeInApk = false
         includeInBundle = false
-    }
-}
-
-androidComponents {
-    beforeVariants(selector().all()) { variant ->
-        val flavour = variant.flavorName
-        if ((flavour == "huawei" || flavour == "preload") && variant.buildType == "nightly") {
-            variant.enable = false
-        }
     }
 }
 
@@ -274,8 +267,6 @@ dependencies {
     implementation(libs.androidx.room.paging)
 
     implementation(libs.process.phoenix)
-
-    "huaweiImplementation"(libs.huawei.hms.coreservice)
 
     // LeakCanary
     debugImplementation(libs.squareup.leakcanary.android)

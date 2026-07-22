@@ -1,0 +1,83 @@
+# SPDX-FileCopyrightText: 2026 Flight
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: android-actions/setup-android@v3
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Restore signing material
+        env:
+          KEYSTORE_BASE64: ${{ secrets.AX12_AURORA_KEYSTORE_BASE64 }}
+          KEY_ALIAS: ${{ secrets.AX12_AURORA_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.AX12_AURORA_KEY_PASSWORD }}
+          STORE_PASSWORD: ${{ secrets.AX12_AURORA_STORE_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "::error::AX12_AURORA_KEYSTORE_BASE64 is not set; refusing to publish an unsigned release."
+            exit 1
+          fi
+          echo "$KEYSTORE_BASE64" | base64 -d > app/ax12-aurora-release.jks
+          cat > signing.properties <<EOF
+          KEY_ALIAS=$KEY_ALIAS
+          KEY_PASSWORD=$KEY_PASSWORD
+          STORE_FILE=app/ax12-aurora-release.jks
+          STORE_PASSWORD=$STORE_PASSWORD
+          EOF
+
+      - name: Build signed release APK
+        run: ./gradlew --no-daemon assembleVanillaRelease
+
+      # A release built without signing.properties is silently unsigned, so verify the
+      # artifact really carries the release key before it reaches anyone's device.
+      - name: Verify signature
+        run: |
+          APK=app/build/outputs/apk/vanilla/release/app-vanilla-release.apk
+          APKSIGNER=$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)
+          "$APKSIGNER" verify --print-certs -v "$APK"
+          "$APKSIGNER" verify --print-certs "$APK" | grep -q 'CN=AX12 Aurora Store'
+          if "$APKSIGNER" verify --print-certs "$APK" | grep -q 'CN=Android, OU=Android'; then
+            echo "::error::APK is signed with the public AOSP test key."
+            exit 1
+          fi
+
+      - name: Stage artifact
+        run: |
+          mkdir -p dist
+          cp app/build/outputs/apk/vanilla/release/app-vanilla-release.apk \
+             "dist/AX12-Aurora-Store-${GITHUB_REF_NAME#v}.apk"
+          ( cd dist && sha256sum *.apk > SHA256SUMS.txt )
+
+      - name: Remove signing material
+        if: always()
+        run: rm -f signing.properties app/ax12-aurora-release.jks
+
+      - uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            dist/*.apk
+            dist/SHA256SUMS.txt
+          generate_release_notes: true
