@@ -22,14 +22,36 @@ advertises a different package signed by a different key.
 
 1. Download the `.apk` from the [latest release](https://github.com/Flight/AX12-Aurora-Store/releases/latest).
 2. Open the APK on the AX12 and allow installation from that source when Android asks.
-3. Grant storage access during first-run setup. Android 9 needs it to write large games' OBB expansion files.
+3. Work through the two permissions first-run setup asks for. **External storage access** is what
+   Android 9 needs to write large games' OBB expansion files; **Installer permission** opens
+   Android's *Install unknown apps* screen, where you enable *Allow from this source* so the store
+   can install anything at all. Both must show **Granted** before you continue.
 4. Choose **Google**, select the Google account already configured in microG, and approve the microG prompt.
-5. Install games normally. Confirm Android's final package installation prompt when it appears.
+5. Install games with the buttons described [below](#the-two-install-buttons). Confirm Android's
+   final package installation prompt when it appears.
 
-Use the regular **Install** button first. **Manual download** is only needed when you intentionally
-want a specific older version code or the normal Play listing does not offer the required build.
+## The two install buttons
 
-The build was tested on a RadioMaster AX12 running Android 9 with a clean installation of FPV.SkyDive, including its 349 MB OBB file.
+Every app page carries the same two buttons. Neither one asks you to handle an APK file yourself.
+
+**Use the big button on the right.** On a free app it reads **Install**.
+
+![Aurora Store app page for a free app, showing Manual download and Install buttons](docs/install-button.png)
+
+On a paid app the same button shows the price instead. For a title the signed-in account already
+owns, it is not a purchase button: pressing it downloads and installs the app exactly as **Install**
+does, expansion files included. All three paid games below were installed this way from scratch, and
+none produced a purchase or payment prompt.
+
+![Aurora Store app page for a paid app, where the primary button shows the price instead of Install](docs/manual-download-button.png)
+
+**Manual download** is the fallback, and it is a button inside Aurora Store rather than a sideload.
+Use it when you need a specific older version code, or if the primary button does not work for some
+app. It opens this dialog prefilled with the newest version code; press **Install** and the store
+downloads and installs that build through the same path, OBB included. You never download an APK,
+open a file manager, or approve an unknown source.
+
+![The Manual download dialog, prefilled with the latest version code, with Close and Install buttons](docs/manual-download-dialog.png)
 
 ## Tested firmware
 
@@ -44,35 +66,41 @@ Other Android 9 firmware builds may work, but this is the version used for the c
 
 ## Tested games
 
-| Game | Result | Installation path |
-| --- | --- | --- |
-| FPV.SkyDive 1.4.4 (13) | Installed and launched | Regular **Install** button; base APK plus 349 MB OBB downloaded and verified by AX12 Aurora Store |
-| FPV Freerider Recharged | Runs on AX12 | Previously installed with the host-assisted OBB workaround; not yet counted as an end-to-end AX12 Aurora Store test |
+All six were uninstalled with their data and OBB directories, then reinstalled through AX12 Aurora
+Store 4.8.3-ax12.3 on a physical AX12 and launched. Every install below was performed by the store
+itself; none needed a host-assisted workaround.
 
-This table deliberately distinguishes a complete store installation test from games that merely run on the device.
+| Game | Version | Price | Primary button | OBB fetched | Result |
+| --- | --- | --- | --- | --- | --- |
+| FPV.SkyDive | 1.4.4 (13) | Free | **Install** | 349 MB | Installed and launched |
+| FeelFPV | 1.7.1 (311) | Free | **Install** | none | Installed and launched |
+| FeelFPV Tiny Whoop | 0.4 (50) | Free | **Install** | none | Installed and launched |
+| FPV Freerider | 4.0 (40) | €3.39 | **€3.39** | none | Installed and launched |
+| FPV Freerider Recharged | 2.5 (25) | €6.99 | **€6.99** | 195 MB | Installed and launched |
+| VelociDrone | 1.0.0.19 (92) | €8.99 | **€8.99** | none | Installs and launches, but see the note below |
+
+All six installed through the page's primary button, paid titles included, with no purchase prompt
+for games the account owns. Both games carrying OBB expansion files fetched them correctly, which is
+the failure this fork exists to fix. **Manual download** was also verified separately on all three
+paid titles and works, but it is not required for them.
+
+**VelociDrone is not usefully playable on the AX12.** It installs and launches, but the game freezes
+for a few seconds at a time, every few seconds, even at the lowest graphics settings. This is a
+limitation of the hardware rather than of the store or this fork.
 
 ## What changed
 
 - App name changed to **AX12 Aurora Store**.
-- Package ID is `com.aurora.store.debug`, allowing side-by-side installation with the factory `com.aurora.store` package.
+- Package ID is `com.aurora.store.ax12`, allowing side-by-side installation with the factory `com.aurora.store` package.
 - OBB parent directories are recreated and checked immediately before opening the temporary download file.
-- The regular Aurora icon is used instead of the debug-badged icon.
+- Releases are minified release builds signed with this project's key, rather than debug builds signed with the public AOSP test key, so the standard Aurora icon is used rather than a debug-badged one.
+- In-app updates track this repository's releases instead of upstream Aurora Store's feed.
 
 ## Security and provenance
 
 Downloads still come directly from Google Play through Aurora Store. This fork does not bypass purchases or licensing. Sign in with the account that owns paid apps.
 
 This is an unofficial community fork. It is not affiliated with or endorsed by Aurora OSS, RadioMaster, Google, or the developers of apps downloaded through it. Source code is based on Aurora Store 4.8.3 and remains licensed under GPL-3.0.
-
-## Build
-
-Requirements: JDK 21 and the Android SDK. Build the same APK with:
-
-```sh
-./gradlew :app:assembleVanillaDebug
-```
-
-Output: `app/build/outputs/apk/vanilla/debug/app-vanilla-debug.apk`.
 
 ## Upstream Aurora Store documentation
 
@@ -107,7 +135,9 @@ Aurora Store works exactly like a door or a browser, allowing you to log in to y
 
 - The underlying API used is reversed engineered from the Google Play Store, changes on side may break it.
 - Provides only base minimum features
-  - Can not download or update paid apps.
+  - Can not purchase paid apps. Paid apps the signed-in account already owns did download and
+    install normally in the [testing above](#tested-games), so read this as "cannot buy", not
+    "cannot install".
   - Can not update apps/games with [Play Asset Delivery](https://developer.android.com/guide/playcore/asset-delivery)
 - Multiple in-app features are not available if logged in as Anonymous.
   - Library
