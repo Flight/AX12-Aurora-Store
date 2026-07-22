@@ -32,6 +32,7 @@ SPDX-License-Identifier = "GPL-3.0-or-later"
 [[annotations]]
 path = [
     ".github/**",
+    "docs/**",
     "signing.properties.sample",
 ]
 precedence = "aggregate"
