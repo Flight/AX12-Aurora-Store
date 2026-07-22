@@ -81,7 +81,12 @@ jobs:
           BADGING=$("$AAPT" dump badging "dist/$NAME")
           VERSION_CODE=$(printf '%s' "$BADGING" | sed -n "s/.*versionCode='\([0-9]*\)'.*/\1/p" | head -1)
           VERSION_NAME=$(printf '%s' "$BADGING" | sed -n "s/.*versionName='\([^']*\)'.*/\1/p" | head -1)
-          CHANGELOG=$(git tag -l --format='%(contents)' "$GITHUB_REF_NAME")
+          # actions/checkout leaves refs/tags/<tag> pointing straight at the commit, so
+          # %(contents) yields the commit message rather than the tag annotation. Refetch
+          # the tag object itself to get the release notes that were actually written.
+          git fetch --force origin "refs/tags/${GITHUB_REF_NAME}:refs/tags/${GITHUB_REF_NAME}"
+          CHANGELOG=$(git for-each-ref "refs/tags/${GITHUB_REF_NAME}" \
+            --format='%(if)%(taggerdate)%(then)%(contents)%(end)')
           [ -n "$CHANGELOG" ] || CHANGELOG="See the release notes for $GITHUB_REF_NAME."
 
           jq -n \
