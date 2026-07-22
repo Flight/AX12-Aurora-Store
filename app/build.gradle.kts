@@ -24,6 +24,13 @@ val lastCommitHash = providers.exec {
     commandLine("git", "rev-parse", "--short", "HEAD")
 }.standardOutput.asText.map { it.trim() }
 
+// Upstream Aurora Store release this fork is based on.
+val upstreamVersionCode = 75
+val upstreamVersionName = "4.8.3"
+
+// Bump for every release cut from this repository; reset to 1 on a new upstream base.
+val forkRelease = 3
+
 // Release signing material, kept out of version control. Resolved against the root
 // project rather than the JVM working directory, which the Gradle daemon does not own.
 // Absent on contributor checkouts, in which case release builds stay unsigned.
@@ -70,8 +77,13 @@ configure<ApplicationExtension> {
             version = release(37)
         }
 
-        versionCode = 75
-        versionName = "4.8.3"
+        // Fork version codes are upstreamVersionCode * 100 + forkRelease, so they always sit
+        // above the upstream code they are based on and below upstream's next one. That keeps
+        // them monotonic across upstream merges without hand-reconciling a shared counter.
+        // Bump forkRelease for every release cut from this repository: the self-update feed
+        // only offers a build whose code exceeds the installed one.
+        versionCode = upstreamVersionCode * 100 + forkRelease
+        versionName = upstreamVersionName
 
         testInstrumentationRunner = "com.aurora.store.HiltInstrumentationTestRunner"
         testInstrumentationRunnerArguments["disableAnalytics"] = "true"
@@ -110,7 +122,7 @@ configure<ApplicationExtension> {
             // The AX12 ships Aurora Store as a system app under com.aurora.store. This fork
             // installs beside it rather than trying to update a package signed by the vendor.
             applicationIdSuffix = ".ax12"
-            versionNameSuffix = "-ax12"
+            versionNameSuffix = "-ax12.$forkRelease"
 
             isMinifyEnabled = true
             isShrinkResources = true

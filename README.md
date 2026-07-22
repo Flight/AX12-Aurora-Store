@@ -9,10 +9,14 @@ An unofficial Aurora Store build adapted for the RadioMaster AX12 and similar An
 This fork installs beside the factory Aurora Store as **AX12 Aurora Store** under the package id
 `com.aurora.store.ax12`, so the original system application and its data remain untouched.
 
-> **Upgrading from 4.8.3-ax12.1?** Uninstall it first. That build was published under
+> **Still on 4.8.3-ax12.1?** Uninstall it first. That build was published under
 > `com.aurora.store.debug` and signed with the public AOSP test key, so Android cannot update it in
-> place. Releases from 4.8.3-ax12.2 onward are signed with the project key fingerprinted
-> [below](#certificate-fingerprints).
+> place; it has since been withdrawn. Releases from 4.8.3-ax12.2 onward are signed with the project
+> key fingerprinted [below](#certificate-fingerprints) and update normally from one to the next.
+
+From 4.8.3-ax12.3 onward the app also checks this repository's releases for its own updates and
+offers them in the app. Earlier builds looked at upstream Aurora Store's update feed, which
+advertises a different package signed by a different key.
 
 ## Download and install
 
