@@ -18,6 +18,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          # The annotated tag message becomes the self-update changelog.
+          fetch-depth: 0
 
       - uses: actions/setup-java@v4
         with:
@@ -66,9 +69,33 @@ jobs:
       - name: Stage artifact
         run: |
           mkdir -p dist
-          cp app/build/outputs/apk/vanilla/release/app-vanilla-release.apk \
-             "dist/AX12-Aurora-Store-${GITHUB_REF_NAME#v}.apk"
+          VERSION="${GITHUB_REF_NAME#v}"
+          NAME="AX12-Aurora-Store-${VERSION}.apk"
+          cp app/build/outputs/apk/vanilla/release/app-vanilla-release.apk "dist/$NAME"
           ( cd dist && sha256sum *.apk > SHA256SUMS.txt )
+
+          # Self-update feed read by UpdateWorker from /releases/latest/download/updates.json.
+          # Generated from the APK itself so version_code can never drift from what shipped;
+          # the app only offers an update when this exceeds the installed version code.
+          AAPT=$(ls "$ANDROID_HOME"/build-tools/*/aapt2 | sort -V | tail -1)
+          BADGING=$("$AAPT" dump badging "dist/$NAME")
+          VERSION_CODE=$(printf '%s' "$BADGING" | sed -n "s/.*versionCode='\([0-9]*\)'.*/\1/p" | head -1)
+          VERSION_NAME=$(printf '%s' "$BADGING" | sed -n "s/.*versionName='\([^']*\)'.*/\1/p" | head -1)
+          CHANGELOG=$(git tag -l --format='%(contents)' "$GITHUB_REF_NAME")
+          [ -n "$CHANGELOG" ] || CHANGELOG="See the release notes for $GITHUB_REF_NAME."
+
+          jq -n \
+            --arg version_name "$VERSION_NAME" \
+            --argjson version_code "$VERSION_CODE" \
+            --arg aurora_build "https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/${NAME}" \
+            --arg changelog "$CHANGELOG" \
+            --argjson size "$(stat -c%s "dist/$NAME")" \
+            --arg updated_on "$(date -u '+%b %d, %Y')" \
+            '{version_name: $version_name, version_code: $version_code,
+              aurora_build: $aurora_build, fdroid_build: "",
+              changelog: $changelog, size: $size, updated_on: $updated_on}' \
+            > dist/updates.json
+          cat dist/updates.json
 
       - name: Remove signing material
         if: always()
@@ -80,4 +107,5 @@ jobs:
           files: |
             dist/*.apk
             dist/SHA256SUMS.txt
+            dist/updates.json
           generate_release_notes: true

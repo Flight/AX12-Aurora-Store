@@ -37,7 +37,13 @@ object Constants {
 
     const val SHARE_URL = "https://play.google.com/store/apps/details?id="
 
-    const val UPDATE_URL_STABLE = "https://gitlab.com/AuroraOSS/AuroraStore/raw/master/updates.json"
+    // This fork's own feed, published as a release asset. GitHub always serves the newest
+    // release at /releases/latest/download/, so the URL stays correct without anything being
+    // committed back to the branch. Pointing this at upstream would offer AX12 users the
+    // upstream APK, which is a different package signed by a different key and cannot
+    // install over this build.
+    const val UPDATE_URL_STABLE =
+        "https://github.com/Flight/AX12-Aurora-Store/releases/latest/download/updates.json"
     const val UPDATE_URL_NIGHTLY =
         "https://auroraoss.com/downloads/AuroraStore/Feeds/nightly_feed.json"
 
