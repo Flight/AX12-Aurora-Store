@@ -27,7 +27,10 @@ advertises a different package signed by a different key.
    Android's *Install unknown apps* screen, where you enable *Allow from this source* so the store
    can install anything at all. Both must show **Granted** before you continue.
 4. Choose **Google**, select the Google account already configured in microG, and approve the microG prompt.
-5. Install games with the buttons described [below](#the-two-install-buttons). Confirm Android's
+5. For paid games, buy them first from the Google Play Store on a computer or another device, using
+   the same Google account. Aurora Store can install what that account owns, but it cannot buy
+   anything.
+6. Install games with the buttons described [below](#the-two-install-buttons). Confirm Android's
    final package installation prompt when it appears.
 
 ## The two install buttons
@@ -42,6 +45,11 @@ On a paid app the same button shows the price instead. For a title the signed-in
 owns, it is not a purchase button: pressing it downloads and installs the app exactly as **Install**
 does, expansion files included. All three paid games below were installed this way from scratch, and
 none produced a purchase or payment prompt.
+
+> **Buy paid games before you come here.** Aurora Store cannot complete a purchase. Buy the game
+> first from the Google Play Store on a computer, phone, or tablet, using the same Google account
+> you sign in with on the AX12. Once the account owns it, the price button on the AX12 downloads and
+> installs it. If you have not bought it yet, that button cannot do it for you.
 
 ![Aurora Store app page for a paid app, where the primary button shows the price instead of Install](docs/manual-download-button.png)
 
@@ -135,9 +143,9 @@ Aurora Store works exactly like a door or a browser, allowing you to log in to y
 
 - The underlying API used is reversed engineered from the Google Play Store, changes on side may break it.
 - Provides only base minimum features
-  - Can not purchase paid apps. Paid apps the signed-in account already owns did download and
-    install normally in the [testing above](#tested-games), so read this as "cannot buy", not
-    "cannot install".
+  - Can not purchase paid apps. Buy them from the Google Play Store on another device first; apps
+    the signed-in account already owns did download and install normally in the
+    [testing above](#tested-games), so read this as "cannot buy", not "cannot install".
   - Can not update apps/games with [Play Asset Delivery](https://developer.android.com/guide/playcore/asset-delivery)
 - Multiple in-app features are not available if logged in as Anonymous.
   - Library
